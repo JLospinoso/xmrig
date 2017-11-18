@@ -34,7 +34,6 @@
 #include "log/Log.h"
 #include "net/Client.h"
 #include "net/Network.h"
-#include "net/strategies/DonateStrategy.h"
 #include "net/strategies/FailoverStrategy.h"
 #include "net/strategies/SinglePoolStrategy.h"
 #include "net/SubmitResult.h"
@@ -56,13 +55,8 @@ Network::Network(const Options *options) :
 
     if (pools.size() > 1) {
         m_strategy = new FailoverStrategy(pools, Platform::userAgent(), this);
-    }
-    else {
+    } else {
         m_strategy = new SinglePoolStrategy(pools.front(), Platform::userAgent(), this);
-    }
-
-    if (m_options->donateLevel() > 0) {
-        m_donate = new DonateStrategy(Platform::userAgent(), this);
     }
 
     m_timer.data = this;
@@ -178,10 +172,6 @@ void Network::tick()
     const uint64_t now = uv_now(uv_default_loop());
 
     m_strategy->tick(now);
-
-    if (m_donate) {
-        m_donate->tick(now);
-    }
 
 #   ifndef XMRIG_NO_API
     Api::tick(m_state);
